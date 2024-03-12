@@ -1,4 +1,4 @@
-# flutter_application_2
+# UMD_Dining
 
 A new Flutter project.
 

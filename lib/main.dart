@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'pages/home.dart';
+import 'pages/start_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   await Supabase.initialize(
     url: 'https://plximrqrwrpqshptjfkq.supabase.co',
     anonKey:
@@ -17,9 +19,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: HomePage(),
+      home: StartPage(),
     );
   }
 }
