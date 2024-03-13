@@ -1,6 +1,6 @@
 {
-    "name": "UMD_Dining",
-    "short_name": "UMD_Dining",
+    "name": "dining",
+    "short_name": "dining",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

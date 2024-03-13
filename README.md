@@ -1,4 +1,4 @@
-# UMD_Dining
+# dining
 
 A new Flutter project.
 
