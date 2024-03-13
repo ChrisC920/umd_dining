@@ -1,7 +1,6 @@
 // ignore_for_file: sort_child_properties_last, prefer_const_constructors, camel_case_types
 
 import 'package:flutter/material.dart';
-import 'package:UMD_Dining/main.dart';
 import 'package:UMD_Dining/models/category_model.dart';
 import 'package:UMD_Dining/models/recommendation_model.dart';
 import 'package:UMD_Dining/models/popular_model.dart';
@@ -187,6 +186,7 @@ class _popularFoodsWidget extends StatelessWidget {
             ),
             const SizedBox(height: 15),
             ListView.separated(
+              physics: AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.only(left: 20, right: 20),
               itemCount: foods.length,
               shrinkWrap: true,
@@ -320,16 +320,21 @@ class _recommendedFoodWidget extends StatelessWidget {
                         ),
                         Column(
                           children: [
-                            FittedBox(
-                              child: Text(
-                                food['name'],
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.black,
-                                  fontSize: 20,
+                            Wrap(
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Text(
+                                    food['name'],
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.black,
+                                      fontSize: 20,
+                                    ),
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
                             FittedBox(
                               child: Text(
