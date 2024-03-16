@@ -3,6 +3,7 @@ import 'package:umd_dining/models/category_model.dart';
 import 'package:umd_dining/models/recommendation_model.dart';
 import 'package:umd_dining/models/popular_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:umd_dining/pages/food_info.dart';
 import 'package:umd_dining/utils/constants.dart';
 
 class HomePage extends StatefulWidget {
@@ -37,9 +38,9 @@ class _HomePageState extends State<HomePage> {
         children: [
           _searchField(),
           const SizedBox(height: 20),
-          _recommendedFoodWidget(data: _data),
+          RecommendedFoodWidget(data: _data),
           const SizedBox(height: 40),
-          _popularFoodsWidget(data: _data),
+          PopularFoodsWidget(data: _data),
           const SizedBox(height: 40),
         ],
       ),
@@ -152,8 +153,8 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class _popularFoodsWidget extends StatelessWidget {
-  const _popularFoodsWidget({
+class PopularFoodsWidget extends StatelessWidget {
+  const PopularFoodsWidget({
     super.key,
     required PostgrestFilterBuilder<PostgrestList> data,
   }) : _data = data;
@@ -192,65 +193,85 @@ class _popularFoodsWidget extends StatelessWidget {
               separatorBuilder: (context, index) => const SizedBox(height: 25),
               itemBuilder: (context, index) {
                 final food = foods[index];
-                return Container(
-                  height: 100,
-                  decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xff1D1617).withOpacity(0.07),
-                          offset: const Offset(0, 10),
-                          blurRadius: 40,
-                          spreadRadius: 0,
-                        ),
-                      ]),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          const Padding(
-                            padding: EdgeInsets.only(left: 20, right: 20),
-                            child: Icon(
-                              Icons.egg,
-                              size: 50,
-                            ),
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const FoodInfoPage()),
+                    );
+                  },
+                  child: Container(
+                    clipBehavior: Clip.hardEdge,
+                    height: 100,
+                    decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xff1D1617).withOpacity(0.07),
+                            offset: const Offset(0, 10),
+                            blurRadius: 40,
+                            spreadRadius: 0,
                           ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                        ]),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
                             children: [
-                              Text(
-                                food['name'],
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.black,
-                                  fontSize: 16,
+                              const Padding(
+                                padding: EdgeInsets.only(left: 20, right: 20),
+                                child: Icon(
+                                  Icons.food_bank,
+                                  size: 50,
                                 ),
                               ),
-                              Text(
-                                "${food['name']} | ${food['calories_per_serving']} calories",
-                                style: const TextStyle(
-                                  color: Color(0xff7B6F72),
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w400,
+                              Expanded(
+                                child: Padding(
+                                  padding: const EdgeInsets.only(right: 8.0),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        food['name'],
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                          color: Colors.black,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      Text(
+                                        overflow: TextOverflow.ellipsis,
+                                        "${food['dining_hall']} | ${food['calories_per_serving']} calories | ${food['total_fat']} fats | ${food['total_carbohydrates']} carbohydrates | ${food['protein']} protein",
+                                        style: const TextStyle(
+                                          color: Color(0xff7B6F72),
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ],
                           ),
-                        ],
-                      ),
-                      GestureDetector(
-                        child: const Padding(
-                          padding: EdgeInsets.only(right: 20),
-                          child:
-                              Icon(Icons.expand_circle_down_outlined, size: 40),
                         ),
-                        onTap: () {},
-                      ),
-                    ],
+                        GestureDetector(
+                          child: const Padding(
+                            padding: EdgeInsets.only(right: 20),
+                            child: Icon(Icons.expand_circle_down_outlined,
+                                size: 40),
+                          ),
+                          onTap: () {},
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },
@@ -262,8 +283,8 @@ class _popularFoodsWidget extends StatelessWidget {
   }
 }
 
-class _recommendedFoodWidget extends StatelessWidget {
-  const _recommendedFoodWidget({
+class RecommendedFoodWidget extends StatelessWidget {
+  const RecommendedFoodWidget({
     super.key,
     required PostgrestFilterBuilder<PostgrestList> data,
   }) : _data = data;
@@ -314,38 +335,38 @@ class _recommendedFoodWidget extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
                         const Icon(
-                          Icons.apple,
+                          Icons.add_box,
                           size: 90,
                         ),
-                        Column(
-                          children: [
-                            Wrap(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text(
-                                    food['name'],
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      color: Colors.black,
-                                      fontSize: 20,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            FittedBox(
-                              child: Text(
-                                '${food['dining_hall']} | ${food['calories_per_serving']} calories',
-                                style: TextStyle(
-                                  color: Colors.black.withOpacity(0.6),
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w400,
+                        Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Column(
+                            children: [
+                              Text(
+                                food['name'],
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black,
+                                  fontSize: 20,
                                 ),
                               ),
-                            ),
-                          ],
+                              Wrap(
+                                children: [
+                                  Text(
+                                    textAlign: TextAlign.center,
+                                    '${food['dining_hall']} | ${food['calories_per_serving']} calories | ${food['total_fat']} fats | ${food['total_carbohydrates']} carbohydrates | ${food['protein']} protein',
+                                    style: TextStyle(
+                                      color: Colors.black.withOpacity(0.6),
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                         Container(
                           height: 45,

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:umd_dining/pages/start.dart';
 import 'pages/home.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:umd_dining/pages/food_info.dart';
 
 Future<void> main() async {
   await Supabase.initialize(
