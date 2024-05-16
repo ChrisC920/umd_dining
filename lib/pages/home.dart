@@ -16,34 +16,54 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final _data = supabase.from('food').select();
 
-  List<CategoryModel> categories = [];
+  // List<CategoryModel> categories = [];
 
-  List<RecommendationModel> recommendations = [];
+  // List<RecommendationModel> recommendations = [];
 
-  List<PopularModel> popular = [];
+  // List<PopularModel> popular = [];
 
-  void _getInitialInfo() {
-    categories = CategoryModel.getCategories();
-    recommendations = RecommendationModel.getRecommendations();
-    popular = PopularModel.getPopularModel();
-  }
+  // void _getInitialInfo() {
+  //   categories = CategoryModel.getCategories();
+  //   recommendations = RecommendationModel.getRecommendations();
+  //   popular = PopularModel.getPopularModel();
+  // }
 
   @override
   Widget build(BuildContext context) {
-    _getInitialInfo();
-    return Scaffold(
-      appBar: appBar(),
-      backgroundColor: Colors.white,
-      body: ListView(
-        children: [
-          _searchField(),
-          const SizedBox(height: 20),
-          RecommendedFoodWidget(data: _data),
-          const SizedBox(height: 40),
-          PopularFoodsWidget(data: _data),
-          const SizedBox(height: 40),
-        ],
-      ),
+    // _getInitialInfo();
+    // return Scaffold(
+    //   appBar: appBar(),
+    //   backgroundColor: Colors.white,
+    //   body: ListView(
+    //     children: [
+    //       _searchField(),
+    //       const SizedBox(height: 20),
+    //       RecommendedFoodWidget(data: _data),
+    //       const SizedBox(height: 40),
+    //       PopularFoodsWidget(data: _data),
+    //       const SizedBox(height: 40),
+    //     ],
+    //   ),
+    // );
+    return FutureBuilder(
+      future: _data,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        print(snapshot.data);
+        final countries = snapshot.data!;
+        return ListView.builder(
+          // itemCount: countries.length,
+          itemCount: 2,
+          itemBuilder: ((context, index) {
+            final country = countries[0];
+            return ListTile(
+              title: Text(country['name']),
+            );
+          }),
+        );
+      },
     );
   }
 
@@ -117,6 +137,7 @@ class _HomePageState extends State<HomePage> {
       leading: GestureDetector(
         onTap: () {
           print('Left press');
+          print(_data);
         },
         child: Container(
           alignment: Alignment.center,
