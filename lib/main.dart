@@ -1,10 +1,6 @@
-import 'package:umd_dining/pages/login.dart';
-import 'package:umd_dining/pages/signup.dart';
+import 'package:umd_dining/pages/signin.dart';
 import 'package:flutter/material.dart';
-import 'package:umd_dining/pages/start.dart';
-import 'pages/home.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:umd_dining/pages/food_info.dart';
 
 Future<void> main() async {
   await Supabase.initialize(
@@ -23,7 +19,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: StartPage(),
+      home: SignInPage(),
+      // initialRoute: '/',
+      // routes: <String, WidgetBuilder>{
+      //   '/': (context) => const SplashPage(),
+      //   '/login': (context) => const LoginPage(),
+      //   '/signup': (context) => const SignUpPage(),
+      // },
     );
   }
 }
