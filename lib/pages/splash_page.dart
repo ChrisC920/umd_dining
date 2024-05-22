@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:umd_dining/utils/constants.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -22,9 +23,9 @@ class _SplashPageState extends State<SplashPage> {
 
     // final session = supabase.auth.currentSession;
     // if (session != null) {
-    Navigator.of(context).pushReplacementNamed('/signup');
+    //   Navigator.of(context).pushReplacementNamed('/start');
     // } else {
-    //   Navigator.of(context).pushReplacementNamed('/login');
+    Navigator.of(context).pushReplacementNamed('/signin');
     // }
   }
 

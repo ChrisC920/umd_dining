@@ -1,6 +1,12 @@
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:linkedin_login/linkedin_login.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:umd_dining/pages/home.dart';
 import 'package:umd_dining/utils/constants.dart';
 
 const bgcolor = Color.fromARGB(255, 255, 101, 101);
@@ -22,6 +28,10 @@ class _SignInPageState extends State<SignInPage> {
       setState(() {
         _userId = data.session?.user.id;
       });
+      final event = data.event;
+      if (event == AuthChangeEvent.signedIn) {
+        Navigator.of(context).pushReplacementNamed('/start');
+      }
     });
   }
 
@@ -39,54 +49,119 @@ class _SignInPageState extends State<SignInPage> {
               painter: BackgroundGradient(),
             ),
             Center(
-              child: Column(
-                children: [
-                  const _Logo(),
-                  const _FormContent(),
-                  ElevatedButton(
-                    child: const Text("Sign in with Google"),
-                    onPressed: () async {
-                      /// Web Client ID that you registered with Google Cloud.
-                      const webClientId =
-                          '373883096692-t5smhtjli3uqa7etgteree38e1rshio0.apps.googleusercontent.com';
+              child: Padding(
+                padding: const EdgeInsets.all(30.0),
+                child: Column(
+                  children: [
+                    const _Logo(),
+                    const _FormContent(),
+                    ElevatedButton(
+                      onPressed: () async {
+                        if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+                          return _nativeGoogleSignin();
+                        }
+                        await supabase.auth
+                            .signInWithOAuth(OAuthProvider.google);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        minimumSize: const Size.fromHeight(50),
+                        backgroundColor: const Color.fromARGB(1, 255, 255, 255),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(right: 20),
+                            child: Image.asset(
+                              'assets/images/google_logo.png',
+                              height: 25,
+                            ),
+                          ),
+                          const Text(
+                            "Continue with Google",
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(
+                      height: 12,
+                    ),
+                    SignInWithAppleButton(
+                      text: "Continue with Apple",
+                      style: SignInWithAppleButtonStyle.black,
+                      height: 50,
+                      borderRadius: BorderRadius.circular(8),
 
-                      /// iOS Client ID that you registered with Google Cloud.
-                      const iosClientId =
-                          '373883096692-h867plauslu0js5je5vr404sjq7n8bgi.apps.googleusercontent.com';
+                      // DOESNT WORK RN CUZ I DONT HAVE DEV ACCOUNT
+                      onPressed: () async {
+                        final credential =
+                            await SignInWithApple.getAppleIDCredential(
+                          scopes: [
+                            AppleIDAuthorizationScopes.email,
+                            AppleIDAuthorizationScopes.fullName,
+                          ],
+                        );
 
-                      // Google sign in on Android will work without providing the Android
-                      // Client ID registered on Google Cloud.
-
-                      final GoogleSignIn googleSignIn = GoogleSignIn(
-                        clientId: iosClientId,
-                        serverClientId: webClientId,
-                      );
-                      final googleUser = await googleSignIn.signIn();
-                      final googleAuth = await googleUser!.authentication;
-                      final accessToken = googleAuth.accessToken;
-                      final idToken = googleAuth.idToken;
-
-                      if (accessToken == null) {
-                        throw 'No Access Token found.';
-                      }
-                      if (idToken == null) {
-                        throw 'No ID Token found.';
-                      }
-
-                      await supabase.auth.signInWithIdToken(
-                        provider: OAuthProvider.google,
-                        idToken: idToken,
-                        accessToken: accessToken,
-                      );
-                    },
-                  ),
-                ],
+                        // Now send the credential (especially `credential.authorizationCode`) to your server to create a session
+                        // after they have been validated with Apple (see `Integration` section for more information on how to do this)
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _nativeGoogleSignin() async {
+    /// Web Client ID that you registered with Google Cloud.
+    const webClientId =
+        '373883096692-t5smhtjli3uqa7etgteree38e1rshio0.apps.googleusercontent.com';
+
+    /// iOS Client ID that you registered with Google Cloud.
+    const iosClientId =
+        '373883096692-h867plauslu0js5je5vr404sjq7n8bgi.apps.googleusercontent.com';
+
+    // Google sign in on Android will work without providing the Android
+    // Client ID registered on Google Cloud.
+
+    final GoogleSignIn googleSignIn = GoogleSignIn(
+      clientId: iosClientId,
+      serverClientId: webClientId,
+    );
+    try {
+      final googleUser = await googleSignIn.signIn();
+      if (googleUser != null) {
+        final googleAuth = await googleUser.authentication;
+        final accessToken = googleAuth.accessToken;
+        final idToken = googleAuth.idToken;
+
+        if (accessToken == null) {
+          throw 'No Access Token found.';
+        }
+        if (idToken == null) {
+          throw 'No ID Token found.';
+        }
+
+        await supabase.auth.signInWithIdToken(
+          provider: OAuthProvider.google,
+          idToken: idToken,
+          accessToken: accessToken,
+        );
+      }
+    } on Exception catch (e) {
+      print(e);
+    }
   }
 }
 
@@ -135,141 +210,95 @@ class _FormContent extends StatefulWidget {
 }
 
 class __FormContentState extends State<_FormContent> {
-  final bool _isPasswordVisible = false;
-  final bool _rememberMe = false;
-
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-      // constraints: const BoxConstraints(maxWidth: 380),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextFormField(
-              // style: const TextStyle(color: Colors.white),
+    return Form(
+      key: _formKey,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          TextFormField(
+            validator: (value) {
+              // add email validation
+              if (value == null || value.isEmpty) {
+                return 'Please enter a valid email';
+              }
 
-              validator: (value) {
-                // add email validation
-                if (value == null || value.isEmpty) {
-                  return 'Please enter some text';
-                }
+              bool emailValid = RegExp(
+                      r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+                  .hasMatch(value);
+              if (!emailValid) {
+                return 'Please enter a valid email';
+              }
 
-                bool emailValid = RegExp(
-                        r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
-                    .hasMatch(value);
-                if (!emailValid) {
-                  return 'Please enter a valid email';
-                }
-
-                return null;
-              },
-              decoration: const InputDecoration(
-                labelText: 'Email',
-                // hintText: 'Enter your email',
-                prefixIcon: Icon(Icons.email_outlined),
-                // border: OutlineInputBorder(),
-                filled: true,
-                fillColor: Color.fromARGB(255, 255, 250, 250),
-              ),
-            ),
-            _gap(),
-
-            /*TextFormField(
-              validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Please enter some text';
-                }
-
-                if (value.length < 6) {
-                  return 'Password must be at least 6 characters';
-                }
-                return null;
-              },
-              obscureText: !_isPasswordVisible,
-              decoration: InputDecoration(
-                  labelText: 'Password',
-                  hintText: 'Enter your password',
-                  prefixIcon: const Icon(Icons.lock_outline_rounded),
-                  border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    icon: Icon(_isPasswordVisible
-                        ? Icons.visibility_off
-                        : Icons.visibility),
-                    onPressed: () {
-                      setState(() {
-                        _isPasswordVisible = !_isPasswordVisible;
-                      });
-                    },
-                  )),
-            ),
-            _gap(),
-            CheckboxListTile(
-              value: _rememberMe,
-              onChanged: (value) {
-                if (value == null) return;
-                setState(() {
-                  _rememberMe = value;
-                });
-              },
-              title: const Text('Remember me'),
-              controlAffinity: ListTileControlAffinity.leading,
-              dense: true,
-              contentPadding: const EdgeInsets.all(0),
-            ),
-            _gap(),*/
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color.fromARGB(255, 42, 42, 42),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8)),
+              return null;
+            },
+            decoration: const InputDecoration(
+              border: UnderlineInputBorder(
+                borderRadius: BorderRadius.all(
+                  Radius.circular(8),
                 ),
-                child: const Padding(
-                  padding: EdgeInsets.all(10.0),
-                  child: Text(
-                    'Continue',
-                    style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white),
+                borderSide: BorderSide(
+                  color: Colors.transparent,
+                ),
+              ),
+              labelText: 'Email Address',
+              prefixIcon: Icon(Icons.email),
+              filled: true,
+              fillColor: Color.fromARGB(255, 255, 250, 250),
+            ),
+          ),
+          _gap(),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color.fromARGB(255, 42, 42, 42),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
+              ),
+              child: const Padding(
+                padding: EdgeInsets.all(10.0),
+                child: Text(
+                  'Continue',
+                  style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white),
+                ),
+              ),
+              onPressed: () {
+                if (_formKey.currentState?.validate() ?? false) {
+                  Navigator.of(context).pushNamed('/signup');
+                }
+              },
+            ),
+          ),
+          const SizedBox(
+            height: 10,
+          ),
+          Row(
+            children: [
+              _divider(),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12.0),
+                child: Text(
+                  "or",
+                  style: TextStyle(
+                    color: Colors.black54,
+                    fontWeight: FontWeight.w400,
+                    fontSize: 18,
                   ),
                 ),
-                onPressed: () {
-                  if (_formKey.currentState?.validate() ?? false) {
-                    /// do something
-                  }
-                },
               ),
-            ),
-            const SizedBox(
-              height: 10,
-            ),
-            Row(
-              children: [
-                _divider(),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 12.0),
-                  child: Text(
-                    "or",
-                    style: TextStyle(
-                      color: Colors.black54,
-                      fontWeight: FontWeight.w400,
-                      fontSize: 18,
-                    ),
-                  ),
-                ),
-                _divider(),
-              ],
-            ),
-          ],
-        ),
+              _divider(),
+            ],
+          ),
+          _gap(),
+        ],
       ),
     );
   }

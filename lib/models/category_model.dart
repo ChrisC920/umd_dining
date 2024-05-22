@@ -16,32 +16,56 @@ class CategoryModel {
 
     categories.add(
       CategoryModel(
-        name: 'Breakfast',
-        icon: Icons.free_breakfast_outlined,
+        name: 'Desserts',
+        icon: Icons.cake_outlined,
         boxColor: Colors.yellow,
       ),
     );
 
     categories.add(
       CategoryModel(
-        name: 'Lunch',
-        icon: Icons.lunch_dining_outlined,
+        name: 'Breakfast',
+        icon: Icons.breakfast_dining,
         boxColor: Colors.green,
       ),
     );
 
     categories.add(
       CategoryModel(
-        name: 'Dinner',
-        icon: Icons.dinner_dining_outlined,
+        name: 'Asian',
+        icon: Icons.ramen_dining,
         boxColor: Colors.purple,
       ),
     );
 
     categories.add(
       CategoryModel(
-        name: 'Other',
-        icon: Icons.food_bank_outlined,
+        name: 'Burgers',
+        icon: Icons.fastfood,
+        boxColor: Colors.cyan,
+      ),
+    );
+
+    categories.add(
+      CategoryModel(
+        name: 'Fruits',
+        icon: Icons.apple_rounded,
+        boxColor: Colors.cyan,
+      ),
+    );
+
+    categories.add(
+      CategoryModel(
+        name: 'Protein',
+        icon: Icons.favorite_border_sharp,
+        boxColor: Colors.cyan,
+      ),
+    );
+
+    categories.add(
+      CategoryModel(
+        name: 'New',
+        icon: Icons.new_releases_outlined,
         boxColor: Colors.cyan,
       ),
     );

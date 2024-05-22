@@ -1,7 +1,18 @@
+import 'dart:math';
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:umd_dining/pages/food_info.dart';
 import 'package:umd_dining/utils/constants.dart';
+import 'package:umd_dining/models/category_model.dart';
+
+final _data = supabase.from('food').select();
+double pos = 115;
+double prevpos = 115;
+bool hide = false;
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -11,148 +22,310 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final _data = supabase.from('food').select();
+  static bool suggestionsVisible = false;
+  late final ScrollController _scrollController;
+  final fieldText = TextEditingController();
+  List<CategoryModel> categories = CategoryModel.getCategories();
+
+  @override
+  void initState() {
+    super.initState();
+    suggestionsVisible = false;
+    hide = false;
+    _scrollController = ScrollController();
+    _scrollController.addListener(_handleControllerNotification);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _scrollController.dispose();
+  }
+
+  void _handleControllerNotification() {
+    // if (_scrollController.position.userScrollDirection ==
+    //     ScrollDirection.forward) {
+    //   setState(() {
+    //     hide = false;
+    //   });
+    // }
+    // if (_scrollController.position.userScrollDirection ==
+    //     ScrollDirection.reverse) {
+    //   setState(() {
+    //     hide = true;
+    //   });
+    // }
+  }
 
   @override
   Widget build(BuildContext context) {
     // Main build
     return Scaffold(
-      appBar: appBar(),
-      backgroundColor: Colors.white,
-      body: ListView(
-        // Page Contents
-        children: [
-          _searchField(),
-          const SizedBox(height: 20), // Spacing
-          RecommendedFoodWidget(data: _data), // Recommended Food
-          const SizedBox(height: 40), // Spacing
-          PopularFoodsWidget(data: _data), // Popular Food
-          const SizedBox(height: 40), // Spacing
-        ],
-      ),
-    );
-  }
+      // extendBodyBehindAppBar: true,
 
-  Container _searchField() {
-    return Container(
-      // Main container
-      margin: const EdgeInsets.only(top: 40, left: 20, right: 20),
-      decoration: BoxDecoration(
-        // Outter drop shadow
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.11),
-            blurRadius: 40,
-            spreadRadius: 10,
-          ),
-        ],
-      ),
-      child: TextField(
-        // Text input
-        decoration: InputDecoration(
-          filled: true,
-          fillColor: Colors.white,
-          contentPadding: const EdgeInsets.all(12),
-          prefixIcon: const Padding(
-            padding: EdgeInsets.all(15),
-            child: Icon(Icons.search),
-          ),
-          hintText: 'Search',
-          hintStyle: const TextStyle(
-            color: Colors.black,
-          ),
-          suffixIcon: const SizedBox(
-            width: 100,
-            child: IntrinsicHeight(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  VerticalDivider(
-                    color: Colors.black,
-                    thickness: 1,
-                    indent: 10,
-                    endIndent: 10,
-                  ),
-                  Padding(
-                    padding: EdgeInsets.all(12),
-                    child: Icon(Icons.tune),
-                  ),
-                ],
+      // appBar: appBar(),
+      backgroundColor: Colors.white,
+
+      body: NestedScrollView(
+        controller: _scrollController,
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [appBar()],
+        body: ListView(
+          // controller: _scrollController,
+          // Page Contents
+          children: [
+            const SizedBox(height: 70),
+            // Spacing
+            SizedBox(
+              height: 90,
+              width: 400,
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                scrollDirection: Axis.horizontal,
+                shrinkWrap: true,
+                itemBuilder: (context, index) {
+                  return Column(
+                    children: [
+                      Container(
+                        width: 70,
+                        height: 70,
+                        decoration: BoxDecoration(
+                          color: categories[index].boxColor.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Icon(
+                          categories[index].icon,
+                        ),
+                      ),
+                      Text(
+                        categories[index].name,
+                      ),
+                    ],
+                  );
+                },
+                separatorBuilder: (context, index) {
+                  return const SizedBox(
+                    width: 30,
+                    height: 30,
+                  );
+                },
+                itemCount: categories.length,
               ),
             ),
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(15),
-            borderSide: BorderSide.none,
-          ),
+            const SizedBox(height: 20),
+            RecommendedFoodWidget(data: _data), // Recommended Food
+            const SizedBox(height: 40), // Spacing
+            PopularFoodsWidget(data: _data), // Popular Food
+            const SizedBox(height: 40), // Spacing
+          ],
         ),
       ),
     );
   }
 
-  AppBar appBar() {
-    return AppBar(
-      title: const Text(
-        // "UMD Dining Text and styling"
-        'UMD Dining',
-        style: TextStyle(
-          color: Colors.black,
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      backgroundColor: Colors.white,
-      elevation: 0.0,
-      centerTitle: true,
-      leading: GestureDetector(
-        // Back arrow
-        onTap: () {
-          print('Left press');
-          Navigator.pop(context, context);
-        },
-        child: Container(
-          alignment: Alignment.center,
-          margin: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
+  Widget _searchField() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: AnimatedContainer(
+        // margin: const EdgeInsets.only(bottom: 16),
+        decoration: const BoxDecoration(
+          borderRadius: BorderRadius.all(
+            Radius.circular(14),
           ),
-          child: const Icon(Icons.arrow_back, size: 25),
+          color: Colors.orange,
         ),
+        height: suggestionsVisible ? 300 : 55,
+        duration: const Duration(milliseconds: 600),
+        curve: Curves.fastOutSlowIn,
+        alignment: Alignment.topCenter,
+        // margin: EdgeInsets.only(
+        //   top: hide ? 112 : 112,
+        // ),
+        child: _searchInput(),
       ),
-      actions: [
-        // Profile thing
-        GestureDetector(
-          onTap: () {
-            print('Right press');
-          },
-          child: Container(
-            width: 50,
-            margin: const EdgeInsets.all(10),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(
-              Icons.person_2_outlined,
-              size: 30,
-              color: Colors.black,
+    );
+  }
+
+  Stack _searchInput() {
+    return Stack(
+      children: [
+        Container(
+          height: 55,
+          // Main container
+          decoration: BoxDecoration(
+            // Outter drop shadow
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.11),
+                blurRadius: 40,
+                spreadRadius: 10,
+              ),
+            ],
+          ),
+          child: TextField(
+            controller: fieldText,
+            onTap: () {
+              setState(() {
+                suggestionsVisible = true;
+              });
+            },
+            onChanged: (_) {
+              setState(() {
+                suggestionsVisible = true;
+              });
+            },
+            onTapOutside: (_) {
+              FocusManager.instance.primaryFocus?.unfocus();
+              setState(() {
+                suggestionsVisible = false;
+              });
+            },
+            onSubmitted: (value) {
+              FocusManager.instance.primaryFocus?.unfocus();
+              setState(() {
+                suggestionsVisible = false;
+              });
+            },
+
+            // Text input
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.white,
+              contentPadding: const EdgeInsets.all(12),
+              prefixIcon: const Padding(
+                padding: EdgeInsets.all(15),
+                child: Icon(Icons.search),
+              ),
+              hintText: 'Search',
+              hintStyle: const TextStyle(
+                color: Colors.black,
+              ),
+              suffixIcon: Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: suggestionsVisible
+                    ? IconButton(
+                        onPressed: () {
+                          if (fieldText.text == "") {
+                            FocusManager.instance.primaryFocus?.unfocus();
+                            setState(() {
+                              suggestionsVisible = false;
+                            });
+                          }
+                          clearInput();
+                        },
+                        icon: const Icon(Icons.close),
+                      )
+                    : IconButton(
+                        onPressed: () {},
+                        icon: const Icon(Icons.tune),
+                      ),
+              ),
+              border: suggestionsVisible
+                  ? const OutlineInputBorder(
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(14),
+                        topRight: Radius.circular(14),
+                      ),
+                      borderSide: BorderSide.none,
+                    )
+                  : const OutlineInputBorder(
+                      borderRadius: BorderRadius.all(
+                        Radius.circular(14),
+                      ),
+                      borderSide: BorderSide.none,
+                    ),
             ),
           ),
         ),
       ],
     );
   }
+
+  SliverAppBar appBar() {
+    return SliverAppBar(
+      // backgroundColor: Colors.red,
+      pinned: true,
+      floating: true,
+      snap: true,
+      // clipBehavior: Clip.none,
+
+      // bottom: PreferredSize(
+      //   preferredSize: const Size.fromHeight(55),
+      //   child: _searchField(),
+      // ),
+      flexibleSpace: OverflowBox(
+        maxHeight: 500,
+        alignment: Alignment.topCenter,
+        child: Column(
+          children: [
+            const Text(
+              // "UMD Dining Text and styling"
+              'UMD Dining',
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            _searchField(),
+            // OverflowBox(child: _searchField()),
+          ],
+        ),
+      ),
+
+      // bottom: Tab(
+      //   height: suggestionsVisible ? 300 : 55,
+      //   child: _searchField(),
+      // ),
+      // title: const Text(
+      //   // "UMD Dining Text and styling"
+      //   'UMD Dining',
+      //   style: TextStyle(
+      //     color: Colors.black,
+      //     fontSize: 24,
+      //     fontWeight: FontWeight.bold,
+      //   ),
+      // ),
+      // elevation: 0.0,
+      // centerTitle: true,
+      // leading: IconButton(
+      //   icon: const Icon(
+      //     Icons.keyboard_arrow_left,
+      //     size: 36,
+      //   ),
+      //   onPressed: () {
+      //     Navigator.pop(context);
+      //   },
+      // ),
+      // actions: [
+      //   Padding(
+      //     padding: const EdgeInsets.only(right: 8.0),
+      //     child: IconButton(
+      //       icon: const Icon(
+      //         Icons.person_2_outlined,
+      //         size: 32,
+      //       ),
+      //       onPressed: () {
+      //         print('Right press');
+      //       },
+      //     ),
+      //   ),
+      // ],
+    );
+  }
+
+  void clearInput() {
+    fieldText.clear();
+  }
 }
 
 class PopularFoodsWidget extends StatelessWidget {
-  const PopularFoodsWidget({
+  PopularFoodsWidget({
     super.key,
     required PostgrestFilterBuilder<PostgrestList> data,
   }) : _data = data;
 
   final PostgrestFilterBuilder<PostgrestList> _data;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   Widget build(BuildContext context) {
@@ -166,26 +339,30 @@ class PopularFoodsWidget extends StatelessWidget {
         }
         final foods = snapshot.data!;
         return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Padding(
               // "Popular Text and styling"
               padding: EdgeInsets.only(left: 20),
-              child: Text(
-                'Popular',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                ),
+              child: Row(
+                children: [
+                  Text(
+                    'Popular',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 15),
             ListView.separated(
               // Load list of popular foods
-              physics: const AlwaysScrollableScrollPhysics(),
+              // physics: const AlwaysScrollableScrollPhysics(),
+              controller: _scrollController,
               padding: const EdgeInsets.only(left: 20, right: 20),
-              itemCount: foods.length,
+              itemCount: 10,
               shrinkWrap: true,
               separatorBuilder: (context, index) => const SizedBox(height: 25),
               itemBuilder: (context, index) {
@@ -327,7 +504,7 @@ class RecommendedFoodWidget extends StatelessWidget {
                 separatorBuilder: (context, index) => const SizedBox(width: 25),
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.only(left: 20, right: 20),
-                itemCount: foods.length,
+                itemCount: 10,
                 itemBuilder: ((context, index) {
                   final food = foods[index];
                   return GestureDetector(
