@@ -33,28 +33,12 @@ class _HomePageState extends State<HomePage> {
     suggestionsVisible = false;
     hide = false;
     _scrollController = ScrollController();
-    _scrollController.addListener(_handleControllerNotification);
   }
 
   @override
   void dispose() {
     super.dispose();
     _scrollController.dispose();
-  }
-
-  void _handleControllerNotification() {
-    // if (_scrollController.position.userScrollDirection ==
-    //     ScrollDirection.forward) {
-    //   setState(() {
-    //     hide = false;
-    //   });
-    // }
-    // if (_scrollController.position.userScrollDirection ==
-    //     ScrollDirection.reverse) {
-    //   setState(() {
-    //     hide = true;
-    //   });
-    // }
   }
 
   @override
@@ -66,57 +50,58 @@ class _HomePageState extends State<HomePage> {
       // appBar: appBar(),
       backgroundColor: Colors.white,
 
-      body: NestedScrollView(
-        controller: _scrollController,
-        headerSliverBuilder: (context, innerBoxIsScrolled) => [appBar()],
-        body: ListView(
-          // controller: _scrollController,
-          // Page Contents
-          children: [
-            const SizedBox(height: 70),
-            // Spacing
-            SizedBox(
-              height: 90,
-              width: 400,
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                scrollDirection: Axis.horizontal,
-                shrinkWrap: true,
-                itemBuilder: (context, index) {
-                  return Column(
-                    children: [
-                      Container(
-                        width: 70,
-                        height: 70,
-                        decoration: BoxDecoration(
-                          color: categories[index].boxColor.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(20),
+      body: SafeArea(
+        child: NestedScrollView(
+          controller: _scrollController,
+          headerSliverBuilder: (context, innerBoxIsScrolled) => [appBar()],
+          body: ListView(
+            // Page Contents
+            children: [
+              const SizedBox(height: 30),
+              // Spacing
+              SizedBox(
+                height: 90,
+                width: 400,
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  scrollDirection: Axis.horizontal,
+                  shrinkWrap: true,
+                  itemBuilder: (context, index) {
+                    return Column(
+                      children: [
+                        Container(
+                          width: 70,
+                          height: 70,
+                          decoration: BoxDecoration(
+                            color: categories[index].boxColor.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Icon(
+                            categories[index].icon,
+                          ),
                         ),
-                        child: Icon(
-                          categories[index].icon,
+                        Text(
+                          categories[index].name,
                         ),
-                      ),
-                      Text(
-                        categories[index].name,
-                      ),
-                    ],
-                  );
-                },
-                separatorBuilder: (context, index) {
-                  return const SizedBox(
-                    width: 30,
-                    height: 30,
-                  );
-                },
-                itemCount: categories.length,
+                      ],
+                    );
+                  },
+                  separatorBuilder: (context, index) {
+                    return const SizedBox(
+                      width: 30,
+                      height: 30,
+                    );
+                  },
+                  itemCount: categories.length,
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            RecommendedFoodWidget(data: _data), // Recommended Food
-            const SizedBox(height: 40), // Spacing
-            PopularFoodsWidget(data: _data), // Popular Food
-            const SizedBox(height: 40), // Spacing
-          ],
+              const SizedBox(height: 20),
+              RecommendedFoodWidget(data: _data), // Recommended Food
+              const SizedBox(height: 40), // Spacing
+              PopularFoodsWidget(data: _data), // Popular Food
+              const SizedBox(height: 40), // Spacing
+            ],
+          ),
         ),
       ),
     );
@@ -133,6 +118,7 @@ class _HomePageState extends State<HomePage> {
           ),
           color: Colors.orange,
         ),
+
         height: suggestionsVisible ? 300 : 55,
         duration: const Duration(milliseconds: 600),
         curve: Curves.fastOutSlowIn,
@@ -148,19 +134,19 @@ class _HomePageState extends State<HomePage> {
   Stack _searchInput() {
     return Stack(
       children: [
-        Container(
+        SizedBox(
           height: 55,
           // Main container
-          decoration: BoxDecoration(
-            // Outter drop shadow
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.11),
-                blurRadius: 40,
-                spreadRadius: 10,
-              ),
-            ],
-          ),
+          // decoration: BoxDecoration(
+          //   // Outter drop shadow
+          //   boxShadow: [
+          //     BoxShadow(
+          //       color: Colors.black.withOpacity(0.11),
+          //       blurRadius: 20,
+          //       spreadRadius: 10,
+          //     ),
+          //   ],
+          // ),
           child: TextField(
             controller: fieldText,
             onTap: () {
@@ -242,74 +228,90 @@ class _HomePageState extends State<HomePage> {
 
   SliverAppBar appBar() {
     return SliverAppBar(
+      forceMaterialTransparency: false,
+      elevation: 0,
+      forceElevated: false,
       // backgroundColor: Colors.red,
       pinned: true,
       floating: true,
       snap: true,
+      backgroundColor: Colors.white,
+      bottom: Tab(
+        child: OverflowBox(
+          alignment: Alignment.topCenter,
+          maxHeight: 500,
+          child: _searchField(),
+        ),
+      ),
       // clipBehavior: Clip.none,
 
       // bottom: PreferredSize(
       //   preferredSize: const Size.fromHeight(55),
       //   child: _searchField(),
       // ),
-      flexibleSpace: OverflowBox(
-        maxHeight: 500,
-        alignment: Alignment.topCenter,
-        child: Column(
-          children: [
-            const Text(
-              // "UMD Dining Text and styling"
-              'UMD Dining',
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            _searchField(),
-            // OverflowBox(child: _searchField()),
-          ],
-        ),
-      ),
+      // flexibleSpace: const OverflowBox(
+      //   maxHeight: 500,
+      //   alignment: Alignment.topCenter,
+      //   child: Column(
+      //     children: [
+      //       Text(
+      //         // "UMD Dining Text and styling"
+      //         'UMD Dining',
+      //         style: TextStyle(
+      //           color: Colors.black,
+      //           fontSize: 24,
+      //           fontWeight: FontWeight.bold,
+      //         ),
+      //       ),
+      //       // const SizedBox(height: 10),
+      //       // _searchField(),
+      //     ],
+      //   ),
+      // ),
 
       // bottom: Tab(
       //   height: suggestionsVisible ? 300 : 55,
       //   child: _searchField(),
       // ),
-      // title: const Text(
-      //   // "UMD Dining Text and styling"
-      //   'UMD Dining',
-      //   style: TextStyle(
-      //     color: Colors.black,
-      //     fontSize: 24,
-      //     fontWeight: FontWeight.bold,
-      //   ),
-      // ),
-      // elevation: 0.0,
-      // centerTitle: true,
-      // leading: IconButton(
-      //   icon: const Icon(
-      //     Icons.keyboard_arrow_left,
-      //     size: 36,
-      //   ),
-      //   onPressed: () {
-      //     Navigator.pop(context);
-      //   },
-      // ),
-      // actions: [
-      //   Padding(
-      //     padding: const EdgeInsets.only(right: 8.0),
-      //     child: IconButton(
-      //       icon: const Icon(
-      //         Icons.person_2_outlined,
-      //         size: 32,
-      //       ),
-      //       onPressed: () {
-      //         print('Right press');
-      //       },
-      //     ),
-      //   ),
-      // ],
+      flexibleSpace: AppBar(
+        backgroundColor: Colors.white,
+        scrolledUnderElevation: 0,
+        title: const Text(
+          // "UMD Dining Text and styling"
+          'UMD Dining',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        elevation: 0.0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.keyboard_arrow_left,
+            size: 36,
+          ),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: IconButton(
+              icon: const Icon(
+                Icons.person_2_outlined,
+                size: 32,
+              ),
+              onPressed: () {
+                print('Right press');
+              },
+            ),
+          ),
+        ],
+      ),
+      automaticallyImplyLeading: false,
     );
   }
 

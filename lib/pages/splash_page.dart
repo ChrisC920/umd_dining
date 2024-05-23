@@ -21,12 +21,12 @@ class _SplashPageState extends State<SplashPage> {
       return;
     }
 
-    // final session = supabase.auth.currentSession;
-    // if (session != null) {
-    //   Navigator.of(context).pushReplacementNamed('/start');
-    // } else {
-    Navigator.of(context).pushReplacementNamed('/signin');
-    // }
+    final session = supabase.auth.currentSession;
+    if (session != null) {
+      Navigator.of(context).pushReplacementNamed('/start');
+    } else {
+      Navigator.of(context).pushReplacementNamed('/signin');
+    }
   }
 
   @override
