@@ -38,6 +38,7 @@ dependencies:
   supabase_flutter: ^2.3.4
   google_sign_in: ^6.2.1
   sign_in_with_apple: ^5.0.0
+  easy_search_bar: ^2.5.0
 
 dev_dependencies:
   flutter_test:

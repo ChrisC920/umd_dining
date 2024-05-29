@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:easy_search_bar/easy_search_bar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -8,11 +9,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:umd_dining/pages/food_info.dart';
 import 'package:umd_dining/utils/constants.dart';
 import 'package:umd_dining/models/category_model.dart';
+import 'package:umd_dining/models/navigation_model.dart';
 
 final _data = supabase.from('food').select();
-double pos = 115;
-double prevpos = 115;
-bool hide = false;
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -22,16 +21,26 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  static bool suggestionsVisible = false;
   late final ScrollController _scrollController;
-  final fieldText = TextEditingController();
   List<CategoryModel> categories = CategoryModel.getCategories();
+  List<Widget> navigations = NavigationModel.getNavigations();
+  String searchValue = '';
+  final List<String> _suggestions = [
+    'Afeganistan',
+    'Albania',
+    'Algeria',
+    'Australia',
+    'Brazil',
+    'German',
+    'Madagascar',
+    'Mozambique',
+    'Portugal',
+    'Zambia'
+  ];
 
   @override
   void initState() {
     super.initState();
-    suggestionsVisible = false;
-    hide = false;
     _scrollController = ScrollController();
   }
 
@@ -45,279 +54,92 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     // Main build
     return Scaffold(
-      // extendBodyBehindAppBar: true,
-
-      // appBar: appBar(),
-      backgroundColor: Colors.white,
-
-      body: SafeArea(
-        child: NestedScrollView(
-          controller: _scrollController,
-          headerSliverBuilder: (context, innerBoxIsScrolled) => [appBar()],
-          body: ListView(
-            // Page Contents
-            children: [
-              const SizedBox(height: 30),
-              // Spacing
-              SizedBox(
-                height: 90,
-                width: 400,
-                child: ListView.separated(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  scrollDirection: Axis.horizontal,
-                  shrinkWrap: true,
-                  itemBuilder: (context, index) {
-                    return Column(
-                      children: [
-                        Container(
-                          width: 70,
-                          height: 70,
-                          decoration: BoxDecoration(
-                            color: categories[index].boxColor.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Icon(
-                            categories[index].icon,
-                          ),
-                        ),
-                        Text(
-                          categories[index].name,
-                        ),
-                      ],
-                    );
-                  },
-                  separatorBuilder: (context, index) {
-                    return const SizedBox(
-                      width: 30,
-                      height: 30,
-                    );
-                  },
-                  itemCount: categories.length,
-                ),
-              ),
-              const SizedBox(height: 20),
-              RecommendedFoodWidget(data: _data), // Recommended Food
-              const SizedBox(height: 40), // Spacing
-              PopularFoodsWidget(data: _data), // Popular Food
-              const SizedBox(height: 40), // Spacing
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _searchField() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: AnimatedContainer(
-        // margin: const EdgeInsets.only(bottom: 16),
-        decoration: const BoxDecoration(
-          borderRadius: BorderRadius.all(
-            Radius.circular(14),
-          ),
-          color: Colors.orange,
-        ),
-
-        height: suggestionsVisible ? 300 : 55,
-        duration: const Duration(milliseconds: 600),
-        curve: Curves.fastOutSlowIn,
-        alignment: Alignment.topCenter,
-        // margin: EdgeInsets.only(
-        //   top: hide ? 112 : 112,
-        // ),
-        child: _searchInput(),
-      ),
-    );
-  }
-
-  Stack _searchInput() {
-    return Stack(
-      children: [
-        SizedBox(
-          height: 55,
-          // Main container
-          // decoration: BoxDecoration(
-          //   // Outter drop shadow
-          //   boxShadow: [
-          //     BoxShadow(
-          //       color: Colors.black.withOpacity(0.11),
-          //       blurRadius: 20,
-          //       spreadRadius: 10,
-          //     ),
-          //   ],
-          // ),
-          child: TextField(
-            controller: fieldText,
-            onTap: () {
-              setState(() {
-                suggestionsVisible = true;
-              });
-            },
-            onChanged: (_) {
-              setState(() {
-                suggestionsVisible = true;
-              });
-            },
-            onTapOutside: (_) {
-              FocusManager.instance.primaryFocus?.unfocus();
-              setState(() {
-                suggestionsVisible = false;
-              });
-            },
-            onSubmitted: (value) {
-              FocusManager.instance.primaryFocus?.unfocus();
-              setState(() {
-                suggestionsVisible = false;
-              });
-            },
-
-            // Text input
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: Colors.white,
-              contentPadding: const EdgeInsets.all(12),
-              prefixIcon: const Padding(
-                padding: EdgeInsets.all(15),
-                child: Icon(Icons.search),
-              ),
-              hintText: 'Search',
-              hintStyle: const TextStyle(
-                color: Colors.black,
-              ),
-              suffixIcon: Padding(
-                padding: const EdgeInsets.only(right: 12),
-                child: suggestionsVisible
-                    ? IconButton(
-                        onPressed: () {
-                          if (fieldText.text == "") {
-                            FocusManager.instance.primaryFocus?.unfocus();
-                            setState(() {
-                              suggestionsVisible = false;
-                            });
-                          }
-                          clearInput();
-                        },
-                        icon: const Icon(Icons.close),
-                      )
-                    : IconButton(
-                        onPressed: () {},
-                        icon: const Icon(Icons.tune),
-                      ),
-              ),
-              border: suggestionsVisible
-                  ? const OutlineInputBorder(
-                      borderRadius: BorderRadius.only(
-                        topLeft: Radius.circular(14),
-                        topRight: Radius.circular(14),
-                      ),
-                      borderSide: BorderSide.none,
-                    )
-                  : const OutlineInputBorder(
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(14),
-                      ),
-                      borderSide: BorderSide.none,
-                    ),
+      appBar: EasySearchBar(
+        title: const Center(
+          child: Text(
+            'UMD Dining',
+            style: TextStyle(
+              color: Colors.black,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ),
-      ],
-    );
-  }
-
-  SliverAppBar appBar() {
-    return SliverAppBar(
-      forceMaterialTransparency: false,
-      elevation: 0,
-      forceElevated: false,
-      // backgroundColor: Colors.red,
-      pinned: true,
-      floating: true,
-      snap: true,
-      backgroundColor: Colors.white,
-      bottom: Tab(
-        child: OverflowBox(
-          alignment: Alignment.topCenter,
-          maxHeight: 500,
-          child: _searchField(),
-        ),
-      ),
-      // clipBehavior: Clip.none,
-
-      // bottom: PreferredSize(
-      //   preferredSize: const Size.fromHeight(55),
-      //   child: _searchField(),
-      // ),
-      // flexibleSpace: const OverflowBox(
-      //   maxHeight: 500,
-      //   alignment: Alignment.topCenter,
-      //   child: Column(
-      //     children: [
-      //       Text(
-      //         // "UMD Dining Text and styling"
-      //         'UMD Dining',
-      //         style: TextStyle(
-      //           color: Colors.black,
-      //           fontSize: 24,
-      //           fontWeight: FontWeight.bold,
-      //         ),
-      //       ),
-      //       // const SizedBox(height: 10),
-      //       // _searchField(),
-      //     ],
-      //   ),
-      // ),
-
-      // bottom: Tab(
-      //   height: suggestionsVisible ? 300 : 55,
-      //   child: _searchField(),
-      // ),
-      flexibleSpace: AppBar(
+        onSearch: (value) => setState(() => searchValue = value),
         backgroundColor: Colors.white,
-        scrolledUnderElevation: 0,
-        title: const Text(
-          // "UMD Dining Text and styling"
-          'UMD Dining',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        elevation: 0.0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.keyboard_arrow_left,
-            size: 36,
-          ),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: IconButton(
-              icon: const Icon(
-                Icons.person_2_outlined,
-                size: 32,
-              ),
-              onPressed: () {
-                print('Right press');
-              },
-            ),
-          ),
-        ],
+        elevation: 0,
+        asyncSuggestions: (value) async => await _fetchSuggestions(value),
       ),
-      automaticallyImplyLeading: false,
+      backgroundColor: const Color.fromARGB(255, 240, 240, 240),
+      bottomNavigationBar: NavigationBar(
+        elevation: 0,
+        destinations: navigations,
+      ),
+      body: SafeArea(
+        child: ListView(
+          controller: _scrollController,
+
+          // Page Contents
+          children: [
+            const SizedBox(height: 40),
+            // Spacing
+            SizedBox(
+              height: 90,
+              width: 400,
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                scrollDirection: Axis.horizontal,
+                shrinkWrap: true,
+                itemBuilder: (context, index) {
+                  return Column(
+                    children: [
+                      Container(
+                        width: 70,
+                        height: 70,
+                        decoration: BoxDecoration(
+                          color: categories[index].boxColor.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Icon(
+                          categories[index].icon,
+                        ),
+                      ),
+                      Text(
+                        categories[index].name,
+                      ),
+                    ],
+                  );
+                },
+                separatorBuilder: (context, index) {
+                  return const SizedBox(
+                    width: 30,
+                    height: 30,
+                  );
+                },
+                itemCount: categories.length,
+              ),
+            ),
+            const SizedBox(height: 20),
+            RecommendedFoodWidget(data: _data), // Recommended Food
+            const SizedBox(height: 40), // Spacing
+            PopularFoodsWidget(data: _data), // Popular Food
+            const SizedBox(height: 40), // Spacing
+          ],
+        ),
+      ),
     );
   }
 
-  void clearInput() {
-    fieldText.clear();
+  Future<List<String>> _fetchSuggestions(String searchValue) async {
+    await Future.delayed(const Duration(milliseconds: 750));
+
+    return _suggestions.where((element) {
+      return element.toLowerCase().contains(searchValue.toLowerCase());
+    }).toList();
   }
+  // _fetchSuggestions(String value) async {
+  //   return await supabase.from('food').select('name');
+  // }
 }
 
 class PopularFoodsWidget extends StatelessWidget {
@@ -366,6 +188,7 @@ class PopularFoodsWidget extends StatelessWidget {
               padding: const EdgeInsets.only(left: 20, right: 20),
               itemCount: 10,
               shrinkWrap: true,
+
               separatorBuilder: (context, index) => const SizedBox(height: 25),
               itemBuilder: (context, index) {
                 final food = foods[index];
