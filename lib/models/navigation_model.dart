@@ -25,6 +25,13 @@ class NavigationModel {
       ),
     );
 
+    navigations.add(
+      const NavigationDestination(
+        icon: Icon(Icons.person_2_outlined),
+        label: "Profile",
+      ),
+    );
+
     return navigations;
   }
 }

@@ -25,6 +25,7 @@ class _HomePageState extends State<HomePage> {
   List<CategoryModel> categories = CategoryModel.getCategories();
   List<Widget> navigations = NavigationModel.getNavigations();
   String searchValue = '';
+  int currentPageIndex = 0;
   final List<String> _suggestions = [
     'Afeganistan',
     'Albania',
@@ -74,72 +75,148 @@ class _HomePageState extends State<HomePage> {
       bottomNavigationBar: NavigationBar(
         elevation: 0,
         destinations: navigations,
+        indicatorColor: Colors.amber,
+        // indicatorShape: const CircleBorder(),
+        selectedIndex: currentPageIndex,
+        onDestinationSelected: (value) {
+          setState(() {
+            currentPageIndex = value;
+          });
+        },
       ),
       body: SafeArea(
-        child: ListView(
-          controller: _scrollController,
-
-          // Page Contents
-          children: [
-            const SizedBox(height: 40),
-            // Spacing
-            SizedBox(
-              height: 90,
-              width: 400,
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                scrollDirection: Axis.horizontal,
-                shrinkWrap: true,
-                itemBuilder: (context, index) {
-                  return Column(
-                    children: [
-                      Container(
-                        width: 70,
-                        height: 70,
-                        decoration: BoxDecoration(
-                          color: categories[index].boxColor.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Icon(
-                          categories[index].icon,
-                        ),
-                      ),
-                      Text(
-                        categories[index].name,
-                      ),
-                    ],
-                  );
-                },
-                separatorBuilder: (context, index) {
-                  return const SizedBox(
-                    width: 30,
-                    height: 30,
-                  );
-                },
-                itemCount: categories.length,
-              ),
+        child: <Widget>[
+          HomeNavigation(
+            scrollController: _scrollController,
+            categories: categories,
+          ),
+          Center(
+            child: Container(
+              width: 100,
+              height: 100,
+              color: Colors.green,
             ),
-            const SizedBox(height: 20),
-            RecommendedFoodWidget(data: _data), // Recommended Food
-            const SizedBox(height: 40), // Spacing
-            PopularFoodsWidget(data: _data), // Popular Food
-            const SizedBox(height: 40), // Spacing
-          ],
-        ),
+          ),
+          Container(
+            width: 100,
+            height: 100,
+            color: Colors.blue,
+          ),
+          const ProfileNavigation(),
+        ][currentPageIndex],
       ),
     );
   }
 
-  Future<List<String>> _fetchSuggestions(String searchValue) async {
-    await Future.delayed(const Duration(milliseconds: 750));
+  // Future<List<String>> _fetchSuggestions(String searchValue) async {
+  //   await Future.delayed(const Duration(milliseconds: 750));
 
-    return _suggestions.where((element) {
-      return element.toLowerCase().contains(searchValue.toLowerCase());
-    }).toList();
-  }
-  // _fetchSuggestions(String value) async {
-  //   return await supabase.from('food').select('name');
+  //   return _suggestions.where((element) {
+  //     return element.toLowerCase().contains(searchValue.toLowerCase());
+  //   }).toList();
   // }
+  Future<List<String>> _fetchSuggestions(String searchValue) async {
+    try {
+      final result =
+          await supabase.from('food').select().textSearch('name', searchValue);
+      // .limit(100);
+
+      final List<String> names = [];
+      for (var v in result.toList()) {
+        names.add(v.toString());
+      }
+      return names;
+    } catch (error) {
+      print(error);
+      return [];
+    }
+  }
+}
+
+class ProfileNavigation extends StatelessWidget {
+  const ProfileNavigation({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      children: [
+        Center(
+          child: Container(
+            width: 100,
+            height: 100,
+            color: Colors.purple,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class HomeNavigation extends StatelessWidget {
+  const HomeNavigation({
+    super.key,
+    required ScrollController scrollController,
+    required this.categories,
+  }) : _scrollController = scrollController;
+
+  final ScrollController _scrollController;
+  final List<CategoryModel> categories;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      controller: _scrollController,
+
+      // Page Contents
+      children: [
+        const SizedBox(height: 40),
+        // Spacing
+        SizedBox(
+          height: 90,
+          width: 400,
+          child: ListView.separated(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            scrollDirection: Axis.horizontal,
+            shrinkWrap: true,
+            itemBuilder: (context, index) {
+              return Column(
+                children: [
+                  Container(
+                    width: 70,
+                    height: 70,
+                    decoration: BoxDecoration(
+                      color: categories[index].boxColor.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Icon(
+                      categories[index].icon,
+                    ),
+                  ),
+                  Text(
+                    categories[index].name,
+                  ),
+                ],
+              );
+            },
+            separatorBuilder: (context, index) {
+              return const SizedBox(
+                width: 30,
+                height: 30,
+              );
+            },
+            itemCount: categories.length,
+          ),
+        ),
+        const SizedBox(height: 20),
+        RecommendedFoodWidget(data: _data), // Recommended Food
+        const SizedBox(height: 40), // Spacing
+        PopularFoodsWidget(data: _data), // Popular Food
+        const SizedBox(height: 40), // Spacing
+      ],
+    );
+  }
 }
 
 class PopularFoodsWidget extends StatelessWidget {
