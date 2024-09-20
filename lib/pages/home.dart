@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import 'package:easy_search_bar/easy_search_bar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -26,18 +25,6 @@ class _HomePageState extends State<HomePage> {
   List<Widget> navigations = NavigationModel.getNavigations();
   String searchValue = '';
   int currentPageIndex = 0;
-  final List<String> _suggestions = [
-    'Afeganistan',
-    'Albania',
-    'Algeria',
-    'Australia',
-    'Brazil',
-    'German',
-    'Madagascar',
-    'Mozambique',
-    'Portugal',
-    'Zambia'
-  ];
 
   @override
   void initState() {
@@ -55,21 +42,29 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     // Main build
     return Scaffold(
-      appBar: EasySearchBar(
-        title: const Center(
-          child: Text(
-            'UMD Dining',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+      appBar: AppBar(
+        title: const Text(
+          "UMD Dining",
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
           ),
         ),
-        onSearch: (value) => setState(() => searchValue = value),
-        backgroundColor: Colors.white,
-        elevation: 0,
-        asyncSuggestions: (value) async => await _fetchSuggestions(value),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: IconButton(
+              icon: const Icon(
+                Icons.search,
+                color: Colors.black,
+                size: 24,
+                weight: 24,
+              ),
+              onPressed: () {},
+            ),
+          ),
+        ],
       ),
       backgroundColor: const Color.fromARGB(255, 240, 240, 240),
       bottomNavigationBar: NavigationBar(

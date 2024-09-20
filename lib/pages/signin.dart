@@ -158,9 +158,7 @@ class _SignInPageState extends State<SignInPage> {
           accessToken: accessToken,
         );
       }
-    } on Exception catch (e) {
-      print(e);
-    }
+    } on Exception catch (e) {}
   }
 }
 
